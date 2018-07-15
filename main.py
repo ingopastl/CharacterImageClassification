@@ -12,7 +12,7 @@ def folder_processing(classification, folder_path, file):
     for filename in glob(folder_path + '\\**'):
         image = imread(filename)
         resized_image = resize(image, (80, 80), anti_aliasing=True)
-        print('Processing image ' + filename)
+        #print('Processing image ' + filename)
         histograms_data = hog(resized_image, orientations=8, pixels_per_cell=(8, 8), cells_per_block=(1, 1), feature_vector=True)
         data = ImageData(classification, histograms_data)
         file.write(data.__repr__() + "\n")
@@ -28,12 +28,12 @@ def get_training_elements():
            28: "S", 29: "T", 30: "U", 31: "V", 32: "W", 33: "X", 34: "Y", 35: "Z", 36: "a",
            37: "b", 38: "c", 39: "d", 40: "e", 41: "f", 42: "g", 43: "h", 44: "i", 45: "j",
            46: "k", 47: "l", 48: "m", 49: "n", 50: "o", 51: "p", 52: "q", 53: "r", 54: "s",
-           55: "t", 56: "u", 57: "v", 58: "w", 59: "x", 60: "y", 62: "z"}
+           55: "t", 56: "u", 57: "v", 58: "w", 59: "x", 60: "y", 61: "z"}
 
     elements_list = []
-
     file = io.open("data.txt", "w")
     count = 0
+
     for path in glob('characters\\**'):
         elements_list = elements_list + folder_processing(map[count], path, file)
         count += 1
