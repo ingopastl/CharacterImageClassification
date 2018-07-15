@@ -3,17 +3,21 @@ from skimage.io import imread
 from skimage.transform import resize
 from glob import glob
 from ImageData import ImageData
+import io
 
 # Processa todas as imagens em uma determinada pasta e retorna uma lista de objetos ImageData, onde cada objeto contem a lista de caracteristicas e a classificação de uma imagem
-def folder_processing(classification, folder_path):
+# Além de retornar uma lista, a função também escreve os arrays em um arquivo txt
+def folder_processing(classification, folder_path, file):
     data_list = []
     for filename in glob(folder_path + '\\**'):
         image = imread(filename)
         resized_image = resize(image, (80, 80), anti_aliasing=True)
-
-        # print('Processing image ' + filename)
+        print('Processing image ' + filename)
         histograms_data = hog(resized_image, orientations=8, pixels_per_cell=(8, 8), cells_per_block=(1, 1), feature_vector=True)
-        data_list.append(ImageData(classification, histograms_data))
+        data = ImageData(classification, histograms_data)
+        file.write(data.__repr__() + "\n")
+        data_list.append(data)
+
     return data_list
 
 # Retorna uma lista com todas as imagens de treinamento já processadas
@@ -27,11 +31,19 @@ def get_training_elements():
            55: "t", 56: "u", 57: "v", 58: "w", 59: "x", 60: "y", 62: "z"}
 
     elements_list = []
+
+    file = io.open("data.txt", "w")
     count = 0
     for path in glob('characters\\**'):
-        elements_list = elements_list + folder_processing(map[count], path)
+        elements_list = elements_list + folder_processing(map[count], path, file)
         count += 1
+
+    file.close()
     return elements_list
 
-elements_list = get_training_elements()
-# print(elements_list)
+try:
+    file = io.open("data.txt", "r")
+except FileNotFoundError:
+    elements_list = get_training_elements()
+else:
+    print("Dados já processados")
