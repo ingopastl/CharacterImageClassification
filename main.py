@@ -1,12 +1,13 @@
 import io
 import numpy
 import math
+from collections import Counter
 from skimage.feature import hog
 from skimage.io import imread
 from skimage.transform import resize
 from glob import glob
-from Image import ImageData
-from Image import ImageDistance
+from Classes import ImageData
+from Classes import ImageDistance
 
 # Processa todas as imagens em uma determinada pasta e retorna uma lista de objetos ImageData, onde cada objeto contem a lista de caracteristicas e a classificação de uma imagem
 # Além de retornar uma lista, a função também escreve os arrays em um arquivo txt
@@ -66,10 +67,14 @@ def distance(input_characteristics_array, database_characteristics_array):
     for i in range(0, len(input_characteristics_array)):
         sum += ((input_characteristics_array[i] - database_characteristics_array[i])**2)
     euclidian = math.sqrt(sum)
-    return (1/euclidian)**2
+    if (euclidian == 0):
+        return 1
+    else:
+        return (1/euclidian)**2
 
 # Utiliza o algoritmo KNN pra classificar as imagens na pasta "input"
 def knn(imageData_list, k):
+    string = ""
     for filepath in glob('input\\**'):
         k_nearest = []
         image = imread(filepath)
@@ -77,33 +82,29 @@ def knn(imageData_list, k):
         input_data = hog(resized_image, orientations=8, pixels_per_cell=(8, 8), cells_per_block=(10, 10), feature_vector=True)
 
         for i in range(0, len(imageData_list)):
-            ed = distance(input_data, imageData_list[i].characteristics_array)
-            k_nearest.append(ImageDistance(imageData_list[i].classification, ed))
+            dis = distance(input_data, imageData_list[i].characteristics_array)
+            k_nearest.append(ImageDistance(imageData_list[i].classification, dis))
             k_nearest.sort(key=lambda x: x.distance, reverse=True) # Inverso porque a distância é ponderada
             if (len(k_nearest) > k):
                 k_nearest.pop()
 
-        class_list = [k_nearest[0].classification]
-        class_rep = [1]
-        for i in range(1, k):
-            flag = 0
-            for j in range(0, len(class_list)):
-                if (k_nearest[i].classification == class_list[j]):
-                    class_rep[j] += 1
-                    flag = 1
-            if(flag == 0):
-                class_list.append(k_nearest[i].classification)
-                class_rep.append(1)
+        cl = [] #Lista de characters que vai armazenar as k classes dos k elementos mais próximos
+        for i in range(0, k):
+            cl.append(k_nearest[i].classification)
 
-        maxVal = max(class_rep)
+        # Loop para retirar elementos da lista até que não exista mais de uma classe com a maior quantidade de repetições
+        while (True):
+            counter = Counter(cl)
+            mc = counter.most_common()
+            if (len(mc) > 1 and mc[0][1] == mc[1][1]):
+                cl.pop()
+            else:
+                break
 
         print(filepath)
-        print(class_list)
-        print(class_rep)
-        for j in range(0, k):
-            if (class_rep[j] == maxVal):
-                print(k_nearest[j].classification)
-                break
+        print("Character =", mc[0][0], "\n")
+        string += filepath + "\n" + "Character = " + mc[0][0] + "\n\n"
+    return string
 
 try:
     file = io.open("data.txt", "r")
@@ -113,5 +114,7 @@ except FileNotFoundError:
 else:
     print("Dados já processados")
     imageData_list = get_elements_fromFile(file)
+    file.close()
 
-knn(imageData_list, 5)
+file = io.open("output.txt", "w")
+file.write(knn(imageData_list, 5))
