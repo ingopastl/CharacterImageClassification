@@ -9,6 +9,7 @@ class ImageData:
             string = string + str(self.characteristics_array[i]) + " "
         return string + self.classification
 
+
 class ImageDistance:
     def __init__(self, classification, distance):
         self.classification = classification
