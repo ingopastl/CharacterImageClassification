@@ -6,8 +6,8 @@ from skimage.feature import hog
 from skimage.io import imread
 from skimage.transform import resize
 from glob import glob
-from Classes import ImageData
-from Classes import ImageDistance
+from classes import ImageData
+from classes import ImageDistance
 
 '''
 Processa todas as imagens em uma determinada pasta e retorna uma lista de objetos ImageData, onde cada objeto contem a 
@@ -43,15 +43,14 @@ def create_database_elements():
               46: "k", 47: "l", 48: "m", 49: "n", 50: "o", 51: "p", 52: "q", 53: "r", 54: "s",
               55: "t", 56: "u", 57: "v", 58: "w", 59: "x", 60: "y", 61: "z"}
 
-    image_data_list = []
     file = io.open("data.txt", "w")
+    image_data_list = []
     count = 0
-
     for path in glob('characters\\**'):
         image_data_list = image_data_list + folder_processing(mapping[count], path, file)
         count += 1
-
     file.close()
+
     return image_data_list
 
 
@@ -131,15 +130,20 @@ def knn(image_data_list, k):
     return string
 
 
-try:
-    f = io.open("data.txt", "r")
-except FileNotFoundError:
-    print("Processando dados")
-    imageData_list = create_database_elements()
-else:
-    print("Dados já processados")
-    imageData_list = get_elements_from_file(f)
-    f.close()
+def main():
+    try:
+        f = io.open("data.txt", "r")
+    except FileNotFoundError:
+        print("Processando dados")
+        image_data_list = create_database_elements()
+    else:
+        print("Dados já processados")
+        image_data_list = get_elements_from_file(f)
+        f.close()
+    
+    f = io.open("output.txt", "w")
+    f.write(knn(image_data_list, 5))
 
-f = io.open("output.txt", "w")
-f.write(knn(imageData_list, 5))
+
+if __name__ == "__main__":
+    main()
