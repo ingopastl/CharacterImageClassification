@@ -85,10 +85,14 @@ def distance(input_characteristics_array, database_characteristics_array):
     for i in range(0, len(input_characteristics_array)):
         s += ((input_characteristics_array[i] - database_characteristics_array[i])**2)
     euclidian = math.sqrt(s)
-    if (euclidian == 0):
-        return 1
-    else:
-        return (1/euclidian)**2
+    w = (1/euclidian)**2
+
+    s2 = 0.0
+    for i in range(0, len(input_characteristics_array)):
+        s2 += ((w * input_characteristics_array[i] - w * database_characteristics_array[i])**2)
+    dist = math.sqrt(s2)
+
+    return dist
 
 
 '''
