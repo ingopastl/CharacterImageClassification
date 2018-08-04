@@ -21,7 +21,8 @@ def folder_processing(classification, folder_path, file):
     for filepath in glob(folder_path + '\\**'):
         image = imread(filepath)
         resized_image = resize(image, (80, 80), anti_aliasing=True)
-        histograms_data = hog(resized_image, orientations=8, pixels_per_cell=(8, 8), cells_per_block=(10, 10), feature_vector=True)
+        histograms_data = hog(resized_image, orientations=8, pixels_per_cell=(8, 8), cells_per_block=(10, 10),
+                              feature_vector=True)
         data = ImageData(classification, histograms_data)
         file.write(data.__repr__() + "\n")
         data_list.append(data)
@@ -83,16 +84,12 @@ Calcula a distância pondereada para o algoritmo KNN utilizando o inverso da dis
 def distance(input_characteristics_array, database_characteristics_array):
     s = 0.0  # Variável que vai armazenar a somatória
     for i in range(0, len(input_characteristics_array)):
-        s += ((input_characteristics_array[i] - database_characteristics_array[i])**2)
+        s += ((input_characteristics_array[i] - database_characteristics_array[i]) ** 2)
     euclidian = math.sqrt(s)
-    w = (1/euclidian)**2
-
-    s2 = 0.0
-    for i in range(0, len(input_characteristics_array)):
-        s2 += ((w * input_characteristics_array[i] - w * database_characteristics_array[i])**2)
-    dist = math.sqrt(s2)
-
-    return dist
+    if (euclidian == 0):
+        return 1
+    else:
+        return (1 / euclidian) ** 2
 
 
 '''
@@ -106,7 +103,8 @@ def knn(image_data_list, k):
         k_nearest = []
         image = imread(filepath)
         resized_image = resize(image, (80, 80), anti_aliasing=True)
-        input_data = hog(resized_image, orientations=8, pixels_per_cell=(8, 8), cells_per_block=(10, 10), feature_vector=True)
+        input_data = hog(resized_image, orientations=8, pixels_per_cell=(8, 8), cells_per_block=(10, 10),
+                         feature_vector=True)
 
         for i in range(0, len(image_data_list)):
             dis = distance(input_data, image_data_list[i].characteristics_array)
@@ -144,7 +142,7 @@ def main():
         print("Dados já processados")
         image_data_list = get_elements_from_file(f)
         f.close()
-    
+
     f = io.open("output.txt", "w")
     f.write(knn(image_data_list, 5))
 
