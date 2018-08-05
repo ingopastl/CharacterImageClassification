@@ -8,11 +8,19 @@ from skimage.transform import resize
 from glob import glob
 from classes import ImageData
 from classes import ImageDistance
+from random import randint
+
+class_to_index = {"A": 0, "B": 1, "C": 2, "D": 3, "E": 4, "F": 5, "G": 6, "H": 7, "I": 8, "J": 9,
+                  "K": 10, "L": 11, "M": 12, "N": 13, "O": 14, "P": 15, "Q": 16, "R": 17, "S": 18,
+                  "T": 19, "U": 20, "V": 21, "W": 22, "X": 23, "Y": 24, "Z": 25, "a": 26, "b": 27,
+                  "c": 28, "d": 29, "e": 30, "f": 31, "g": 32, "h": 33, "i": 34, "j": 35, "k": 36,
+                  "l": 37, "m": 38, "n": 39, "o": 40, "p": 41, "q": 42, "r": 43, "s": 44, "t": 45,
+                  "u": 46, "v": 47, "w": 48, "x": 49, "y": 50, "z": 51}
 
 '''
 Processa todas as imagens em uma determinada pasta e retorna uma lista de objetos ImageData, onde cada objeto contem o 
-array de caracteristicas e a classificação de uma imagem.
-Além de retornar uma lista, a função também escreve os arrays e a classificação em um arquivo txt
+array de caracteristicas e a classificação de uma imagem;
+Além de retornar uma lista, a função também escreve os arrays e a classificação em um arquivo txt.
 '''
 
 
@@ -31,37 +39,46 @@ def folder_processing(classification, folder_path, file):
 
 
 '''
-Retorna uma lista com todas as imagens da pasta "characters" processadas e transcrevidas em objetos ImageData.
+Retorna uma lista com todas as imagens da pasta "characters" processadas e transcrevidas em objetos ImageData;
+Também retorna uma lista de listas. Cada uma dessas listas possui todos os objetos ImageData com uma classificação.
 '''
 
 
-def create_database_elements():
-    mapping = {0: "0", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9",
-               10: "A", 11: "B", 12: "C", 13: "D", 14: "E", 15: "F", 16: "G", 17: "H", 18: "I",
-               19: "J", 20: "K", 21: "L", 22: "M", 23: "N", 24: "O", 25: "P", 26: "Q", 27: "R",
-               28: "S", 29: "T", 30: "U", 31: "V", 32: "W", 33: "X", 34: "Y", 35: "Z", 36: "a",
-               37: "b", 38: "c", 39: "d", 40: "e", 41: "f", 42: "g", 43: "h", 44: "i", 45: "j",
-               46: "k", 47: "l", 48: "m", 49: "n", 50: "o", 51: "p", 52: "q", 53: "r", 54: "s",
-               55: "t", 56: "u", 57: "v", 58: "w", 59: "x", 60: "y", 61: "z"}
+def process_characters():
+    count_to_class = {0: "0", 1: "1", 2: "2", 3: "3", 4: "4", 5: "5", 6: "6", 7: "7", 8: "8", 9: "9",
+                      10: "A", 11: "B", 12: "C", 13: "D", 14: "E", 15: "F", 16: "G", 17: "H", 18: "I",
+                      19: "J", 20: "K", 21: "L", 22: "M", 23: "N", 24: "O", 25: "P", 26: "Q", 27: "R",
+                      28: "S", 29: "T", 30: "U", 31: "V", 32: "W", 33: "X", 34: "Y", 35: "Z", 36: "a",
+                      37: "b", 38: "c", 39: "d", 40: "e", 41: "f", 42: "g", 43: "h", 44: "i", 45: "j",
+                      46: "k", 47: "l", 48: "m", 49: "n", 50: "o", 51: "p", 52: "q", 53: "r", 54: "s",
+                      55: "t", 56: "u", 57: "v", 58: "w", 59: "x", 60: "y", 61: "z"}
 
     file = io.open("data.txt", "w")
     image_data_list = []
-    count = 0
+    separated_classes = []
+    count = 10
     for path in glob('characters\\**'):
-        image_data_list = image_data_list + folder_processing(mapping[count], path, file)
+        c = folder_processing(count_to_class[count], path, file)
+        separated_classes.append(c)
+        image_data_list = image_data_list + c
         count += 1
     file.close()
 
-    return image_data_list
+    return image_data_list, separated_classes
 
 
 '''
-Cria um numpy array de objetos ImageData baseando-se nos dados de um arquivo txt
+Lê os dados de um arquivo txt;
+Retorna uma lista com todas as imagens da pasta "characters" processadas e transcrevidas em objetos ImageData;
+Também retorna uma lista de listas. Cada uma dessas listas possui todos os objetos ImageData com uma classificação.
 '''
 
 
-def get_elements_from_file(file):
+def get_data_from_file(file):
     image_data_list = []
+    separated_characters = []
+    character_data = []
+    count = 0
     for line in file:
         if (line != ""):
             string_list = line.split()
@@ -70,10 +87,21 @@ def get_elements_from_file(file):
             np = numpy.array(string_list)
             npfloat = np.astype(numpy.float)
 
-            image_data_list.append(ImageData(classification, npfloat))
+            image_data_obj = ImageData(classification, npfloat)
+
+            character_data.append(image_data_obj)
+
+            image_data_list.append(image_data_obj)
         else:
-            print("Found one")
-    return image_data_list
+            print("Found one blank line")
+
+        count += 1
+        if (count > 54):
+            count = 0
+            separated_characters.append(character_data)
+            character_data = []
+
+    return image_data_list, separated_characters
 
 
 '''
@@ -96,24 +124,22 @@ def distance(input_characteristics_array, database_characteristics_array):
 
 
 '''
-Utiliza o algoritmo KNN pra classificar as imagens na pasta "input"
+Utiliza o algoritmo KNN pra classificar as imagens e retorna uma matriz de confusão
 '''
 
 
-def knn(image_data_list, k):
-    string = ""
-    for filepath in glob('input\\**'):
-        k_nearest = []
-        image = imread(filepath)
-        resized_image = resize(image, (80, 80), anti_aliasing=True)
-        input_data = hog(resized_image, orientations=8, pixels_per_cell=(8, 8), cells_per_block=(10, 10),
-                         feature_vector=True)
+def knn(training, test, k):
+    matrix = [0] * 52
+    for a in range(0, 52):
+        matrix[a] = [0] * 52
 
-        for i in range(0, len(image_data_list)):
-            dis = distance(input_data, image_data_list[i].characteristics_array)
-            k_nearest.append(ImageDistance(image_data_list[i].classification, dis))
-            k_nearest.sort(key=lambda x: x.distance, reverse=True)  # Inverso porque a distância é ponderada
+    for object in test:
+        k_nearest = []
+        for i in range(0, len(training)):
+            dis = distance(object.characteristics_array, training[i].characteristics_array)
+            k_nearest.append(ImageDistance(training[i].classification, dis))
             if (len(k_nearest) > k):
+                k_nearest.sort(key=lambda x: x.distance, reverse=True)  # Inverso porque a distância é ponderada
                 k_nearest.pop()
 
         cl = []  # Lista de characters que vai armazenar as k classes dos k elementos mais próximos
@@ -129,10 +155,94 @@ def knn(image_data_list, k):
             else:
                 break
 
-        print(filepath)
-        print("Character =", mc[0][0], "\n")
-        string += filepath + "\n" + "Character = " + mc[0][0] + "\n\n"
-    return string
+        # print("Class = " + object.classification + "\nKNN = " + mc[0][0])
+        matrix[class_to_index[object.classification]][class_to_index[mc[0][0]]] += 1
+        # print_mat(matrix)
+
+    return matrix
+
+
+'''
+Separa as imagens de treino e as de teste
+'''
+
+
+def separate_training_from_test(separated_chars, training_size):
+    training = []
+    test = []
+    for list in separated_chars:
+        for i in range(0, training_size):
+            training.append(list.pop(randint(0, len(list) - 1)))
+        test = test + list
+
+    return training, test
+
+
+'''
+Imprime uma matriz
+'''
+
+
+def print_mat(m):
+    for i in range(len(m)):
+        print(m[i])
+
+
+'''
+Printa a acurácia e o erro de uma matriz de confusão
+'''
+
+
+def evaluate(matrix):
+    mistakes = 0
+    successes = 0
+    for i in range(0, len(matrix)):
+        for j in range(0, len(matrix[i])):
+            if (i == j):
+                successes += matrix[i][j]
+            else:
+                mistakes += matrix[i][j]
+
+    total = successes + mistakes
+    accuracy = successes/total
+    error = mistakes/total
+
+    print("Acurácia = " + str(accuracy))
+    print("Erro = " + str(error))
+
+
+def get_training_and_test_from_data(f_test, f_train):
+    test = []
+    training = []
+    for line in f_test:
+        if (line != ""):
+            string_list = line.split()
+            classification = string_list.pop()
+
+            np = numpy.array(string_list)
+            npfloat = np.astype(numpy.float)
+
+            image_data_obj = ImageData(classification, npfloat)
+
+            test.append(image_data_obj)
+        else:
+            print("Found one blank line")
+
+    for line in f_train:
+        if (line != ""):
+            string_list = line.split()
+            classification = string_list.pop()
+
+            np = numpy.array(string_list)
+            npfloat = np.astype(numpy.float)
+
+            image_data_obj = ImageData(classification, npfloat)
+
+            training.append(image_data_obj)
+        else:
+            print("Found one blank line")
+
+    return training, test
 
 
 def main():
@@ -140,14 +250,43 @@ def main():
         f = io.open("data.txt", "r")
     except FileNotFoundError:
         print("Processando dados")
-        image_data_list = create_database_elements()
+        image_data_list, separated_classes = process_characters()
     else:
         print("Dados já processados")
-        image_data_list = get_elements_from_file(f)
+        image_data_list, separated_classes = get_data_from_file(f)
         f.close()
 
-    f = io.open("output.txt", "w")
-    f.write(knn(image_data_list, 5))
+    try:
+        f = io.open("test.txt", "r")
+        f2 = io.open("training.txt", "r")
+    except FileNotFoundError:
+        print("Separando dados")
+
+        training, test = separate_training_from_test(separated_classes, 37)
+
+        f = io.open("test.txt", "w")
+        f2 = io.open("training.txt", "w")
+        for i in range(0, len(test)):
+            f.write(test[i].__repr__() + "\n")
+        f.close()
+        for i in range(0, len(training)):
+            f2.write(training[i].__repr__() + "\n")
+        f2.close()
+    else:
+        print("Dados separados")
+        training, test = get_training_and_test_from_data(f, f2)
+        f.close()
+        f2.close()
+
+
+    print(len(training))
+    print(len(test))
+    print(len(image_data_list))
+    k = 5
+    matrix = knn(training, test, k)
+    print_mat(matrix)
+    print("K = " + str(k))
+    evaluate(matrix)
 
 
 if __name__ == "__main__":
