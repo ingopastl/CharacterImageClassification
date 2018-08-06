@@ -1,5 +1,6 @@
 import io
 import numpy
+import matplotlib.pyplot as plt
 import math
 from collections import Counter
 from skimage.feature import hog
@@ -109,18 +110,26 @@ Calcula a distância pondereada para o algoritmo KNN utilizando o inverso da dis
 '''
 
 
-def distance(input_characteristics_array, database_characteristics_array):
+def euclidian_distance(input_characteristics_array, database_characteristics_array):
     s = 0.0  # Variável que vai armazenar a somatória
     for i in range(0, len(input_characteristics_array)):
         s += ((input_characteristics_array[i] - database_characteristics_array[i]) ** 2)
     euclidian = math.sqrt(s)
-    w = (1 / euclidian) ** 2
+    '''
+    if(euclidian == 0):
+        return 100000
+    else:
+        w = (1 / euclidian) ** 2
+        return w
+    '''
+    return euclidian
 
-    s2 = 0.0
+
+def manhattan_distance(input_characteristics_array, database_characteristics_array):
+    s = 0.0  # Variável que vai armazenar a somatória
     for i in range(0, len(input_characteristics_array)):
-        s2 += ((w * input_characteristics_array[i] - w * database_characteristics_array[i]) ** 2)
-
-    return math.sqrt(s2)
+        s += abs(input_characteristics_array[i] - database_characteristics_array[i])
+    return s
 
 
 '''
@@ -136,10 +145,16 @@ def knn(training, test, k):
     for object in test:
         k_nearest = []
         for i in range(0, len(training)):
-            dis = distance(object.characteristics_array, training[i].characteristics_array)
+            # dis = euclidian_distance(object.characteristics_array, training[i].characteristics_array)
+            dis = manhattan_distance(object.characteristics_array, training[i].characteristics_array)
+
+            if (dis == 100000):
+                k_nearest = k_nearest.append(ImageDistance(training[i].classification, dis))
+                break
+
             k_nearest.append(ImageDistance(training[i].classification, dis))
             if (len(k_nearest) > k):
-                k_nearest.sort(key=lambda x: x.distance, reverse=True)  # Inverso porque a distância é ponderada
+                k_nearest.sort(key=lambda x: x.distance)
                 k_nearest.pop()
 
         cl = []  # Lista de characters que vai armazenar as k classes dos k elementos mais próximos
@@ -176,16 +191,6 @@ def separate_training_from_test(separated_chars, training_size):
         test = test + list
 
     return training, test
-
-
-'''
-Imprime uma matriz
-'''
-
-
-def print_mat(m):
-    for i in range(len(m)):
-        print(m[i])
 
 
 '''
@@ -245,6 +250,23 @@ def get_training_and_test_from_data(f_test, f_train):
     return training, test
 
 
+def plot_m(matrix):
+    label = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
+             "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
+             "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+    plt.figure(figsize=(10, 10))
+    plt.matshow(matrix, fignum=1)
+
+    x_pos = numpy.arange(len(label))
+    plt.xticks(x_pos, label)
+
+    y_pos = numpy.arange(len(label))
+    plt.yticks(y_pos, label)
+
+    plt.colorbar()
+    plt.show()
+
+
 def main():
     try:
         f = io.open("data.txt", "r")
@@ -278,15 +300,16 @@ def main():
         f.close()
         f2.close()
 
+    # print(len(training))
+    # print(len(test))
+    # print(len(image_data_list))
 
-    print(len(training))
-    print(len(test))
-    print(len(image_data_list))
-    k = 5
+    k = 3
     matrix = knn(training, test, k)
-    print_mat(matrix)
+
     print("K = " + str(k))
     evaluate(matrix)
+    plot_m(matrix)
 
 
 if __name__ == "__main__":
