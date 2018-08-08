@@ -106,7 +106,26 @@ def get_data_from_file(file):
 
 
 '''
-Calcula a distância pondereada para o algoritmo KNN utilizando o inverso da distância euclidiana elevado a potência de 2
+Calcula a distância pondereada para o algoritmo KNN utilizando w = inverso da distância euclidiana elevado a potência de 2
+'''
+
+
+def p_euclidian(input_characteristics_array, database_characteristics_array):
+    s = 0.0  # Variável que vai armazenar a somatória
+    for i in range(0, len(input_characteristics_array)):
+        s += ((input_characteristics_array[i] - database_characteristics_array[i]) ** 2)
+    euclidian = math.sqrt(s)
+    w = 1/euclidian**2
+
+    for i in range(0, len(input_characteristics_array)):
+        s += w * (input_characteristics_array[i] - database_characteristics_array[i]) ** 2
+    pond = math.sqrt(s)
+
+    return pond
+
+
+'''
+Calcula a distância euclidiana
 '''
 
 
@@ -115,21 +134,19 @@ def euclidian_distance(input_characteristics_array, database_characteristics_arr
     for i in range(0, len(input_characteristics_array)):
         s += ((input_characteristics_array[i] - database_characteristics_array[i]) ** 2)
     euclidian = math.sqrt(s)
-    '''
-    if(euclidian == 0):
-        return 100000
-    else:
-        w = (1 / euclidian) ** 2
-        return w
-    '''
     return euclidian
 
 
+'''
+Calcula a distância manhattan
+'''
+
+
 def manhattan_distance(input_characteristics_array, database_characteristics_array):
-    s = 0.0  # Variável que vai armazenar a somatória
+    m = 0.0  # Variável que vai armazenar a somatória
     for i in range(0, len(input_characteristics_array)):
-        s += abs(input_characteristics_array[i] - database_characteristics_array[i])
-    return s
+        m += abs(input_characteristics_array[i] - database_characteristics_array[i])
+    return m
 
 
 '''
@@ -147,6 +164,7 @@ def knn(training, test, k):
         for i in range(0, len(training)):
             # dis = euclidian_distance(object.characteristics_array, training[i].characteristics_array)
             dis = manhattan_distance(object.characteristics_array, training[i].characteristics_array)
+            # dis = p_euclidian(object.characteristics_array, training[i].characteristics_array)
 
             if (dis == 100000):
                 k_nearest = k_nearest.append(ImageDistance(training[i].classification, dis))
@@ -170,9 +188,8 @@ def knn(training, test, k):
             else:
                 break
 
-        # print("Class = " + object.classification + "\nKNN = " + mc[0][0])
+        print("Class = " + object.classification + "\nKNN = " + mc[0][0])
         matrix[class_to_index[object.classification]][class_to_index[mc[0][0]]] += 1
-        # print_mat(matrix)
 
     return matrix
 
@@ -216,7 +233,7 @@ def evaluate(matrix):
     print("Erro = " + str(error))
 
 
-def get_training_and_test_from_data(f_test, f_train):
+def get_training_and_test_from_file(f_test, f_train):
     test = []
     training = []
     for line in f_test:
@@ -254,6 +271,7 @@ def plot_m(matrix):
     label = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U",
              "V", "W", "X", "Y", "Z", "a", "b", "c", "d", "e", "f", "g", "h", "i", "j", "k", "l", "m", "n", "o", "p",
              "q", "r", "s", "t", "u", "v", "w", "x", "y", "z"]
+
     plt.figure(figsize=(10, 10))
     plt.matshow(matrix, fignum=1)
 
@@ -288,15 +306,17 @@ def main():
 
         f = io.open("test.txt", "w")
         f2 = io.open("training.txt", "w")
+
         for i in range(0, len(test)):
             f.write(test[i].__repr__() + "\n")
         f.close()
+
         for i in range(0, len(training)):
             f2.write(training[i].__repr__() + "\n")
         f2.close()
     else:
         print("Dados separados")
-        training, test = get_training_and_test_from_data(f, f2)
+        training, test = get_training_and_test_from_file(f, f2)
         f.close()
         f2.close()
 
@@ -304,7 +324,7 @@ def main():
     # print(len(test))
     # print(len(image_data_list))
 
-    k = 3
+    k = 55
     matrix = knn(training, test, k)
 
     print("K = " + str(k))
